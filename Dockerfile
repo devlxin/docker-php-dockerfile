@@ -343,6 +343,7 @@ RUN set -eux; \
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY fastcgi.conf /etc/nginx/fastcgi.conf
 COPY php.ini /usr/local/etc/php/php.ini
+COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY error.conf /etc/nginx/error.conf
 COPY error /etc/nginx/error
 
