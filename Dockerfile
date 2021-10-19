@@ -191,47 +191,25 @@ RUN set -eux; \
 
 
 # 安装php扩展
-    # mysqli
-COPY mysqli /usr/local/include/php/ext/mysqli
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+
 RUN set -eux; \
-    docker-php-ext-configure mysqli; \
-    docker-php-ext-install -j$(nproc) mysqli; \
+    chmod +x /usr/local/bin/install-php-extensions; \
     \
-    # redis
-    curl -fsSL 'http://pecl.php.net/get/redis-5.3.4.tgz' -o redis.tar.gz; \
-    mkdir -p /tmp/redis; \
-    tar -xf redis.tar.gz -C /tmp/redis --strip-components=1; \
-    rm redis.tar.gz; \
-    docker-php-ext-configure /tmp/redis --enable-redis; \
-    docker-php-ext-install /tmp/redis; \
-    rm -r /tmp/redis; \
+    #kafka
+    install-php-extensions rdkafka; \
+    \
+    #gd
+    install-php-extensions gd; \
     \
     #igbinary
-    curl -fsSL 'http://pecl.php.net/get/igbinary-3.2.5.tgz' -o igbinary.tar.gz; \
-    mkdir -p /tmp/igbinary; \
-    tar -xf igbinary.tar.gz -C /tmp/igbinary --strip-components=1; \
-    rm igbinary.tar.gz; \
-    docker-php-ext-configure /tmp/igbinary --enable-igbinary; \
-    docker-php-ext-install /tmp/igbinary; \
-    rm -r /tmp/igbinary; \
+    install-php-extensions igbinary; \
     \
-    # gd
-    apk add \
-        freetype \
-        freetype-dev \
-        libpng \
-        libpng-dev \
-        libjpeg-turbo \
-        libjpeg-turbo-dev; \
-    docker-php-ext-configure gd \
-        --with-freetype-dir=/usr/include/ \
-        --with-jpeg-dir=/usr/include/; \
-    docker-php-ext-install -j$(nproc) gd; \
-    apk del \
-        freetype-dev \
-        libpng-dev \
-        libjpeg-turbo-dev; \
-    rm /var/cache/apk/*; \
+    #mysqli
+    install-php-extensions mysqli; \
+    \
+    #redis
+    install-php-extensions redis; \
     \
     rm -rf /usr/src/php.tar.*
 
