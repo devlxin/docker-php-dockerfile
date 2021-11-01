@@ -211,6 +211,9 @@ RUN set -eux; \
     #redis
     install-php-extensions redis; \
     \
+    #pdo_mysql
+    install-php-extensions pdo_mysql; \
+    \
     rm -rf /usr/src/php.tar.*
 
 
