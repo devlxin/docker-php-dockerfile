@@ -9,8 +9,8 @@ ENV LANG=zh_CN.UTF-8 TIME_ZONE=Asia/Shanghai
 
 # apk mirrors
 RUN set -eux; \
-    echo "https://mirrors.aliyun.com/alpine/v3.12/main" > /etc/apk/repositories;  \
-    echo "https://mirrors.aliyun.com/alpine/v3.12/community" >> /etc/apk/repositories; \
+    echo "https://mirrors.aliyun.com/alpine/v3.14/main" > /etc/apk/repositories;  \
+    echo "https://mirrors.aliyun.com/alpine/v3.14/community" >> /etc/apk/repositories; \
     apk add --no-cache tzdata; \
     apk add --no-cache bash; \
     \
@@ -20,7 +20,7 @@ RUN set -eux; \
     echo $TIME_ZONE > /etc/timezone
 
 # --------------------------------------
-# 编译php7.3.29
+# 编译php7.4.25
 ENV PHPIZE_DEPS \
         autoconf \
         dpkg-dev dpkg \
@@ -59,11 +59,11 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
+ENV GPG_KEYS 42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC910DEB46F53EA312
 
-ENV PHP_VERSION 7.3.29
-ENV PHP_URL="https://www.php.net/distributions/php-7.3.29.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.3.29.tar.xz.asc"
-ENV PHP_SHA256="7db2834511f3d86272dca3daee3f395a5a4afce359b8342aa6edad80e12eb4d0"
+ENV PHP_VERSION 7.4.25
+ENV PHP_URL="https://www.php.net/distributions/php-7.4.25.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.4.25.tar.xz.asc"
+ENV PHP_SHA256="12a758f1d7fee544387a28d3cf73226f47e3a52fb3049f07fcc37d156d393c0a"
 
 RUN set -eux; \
     apk add --no-cache --virtual .fetch-deps gnupg; \
@@ -96,6 +96,8 @@ RUN set -eux; \
         libedit-dev \
         libsodium-dev \
         libxml2-dev \
+        linux-headers \
+        oniguruma-dev \
         openssl-dev \
         sqlite-dev \
     ; \
@@ -124,6 +126,7 @@ RUN set -eux; \
         --with-libedit \
         --with-openssl \
         --with-zlib \
+        --with-pear \
         $(test "$gnuArch" = 's390x-linux-musl' && echo '--without-pcre-jit') \
         ${PHP_EXTRA_CONFIGURE_ARGS:-} \
     ; \
