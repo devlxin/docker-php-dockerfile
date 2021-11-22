@@ -20,7 +20,7 @@ RUN set -eux; \
     echo $TIME_ZONE > /etc/timezone
 
 # --------------------------------------
-# 编译php7.4.25
+# 编译php7.4.26
 ENV PHPIZE_DEPS \
         autoconf \
         dpkg-dev dpkg \
@@ -61,9 +61,9 @@ ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
 ENV GPG_KEYS 42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC910DEB46F53EA312
 
-ENV PHP_VERSION 7.4.25
-ENV PHP_URL="https://www.php.net/distributions/php-7.4.25.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.4.25.tar.xz.asc"
-ENV PHP_SHA256="12a758f1d7fee544387a28d3cf73226f47e3a52fb3049f07fcc37d156d393c0a"
+ENV PHP_VERSION 7.4.26
+ENV PHP_URL="https://www.php.net/distributions/php-7.4.26.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.4.26.tar.xz.asc"
+ENV PHP_SHA256="e305b3aafdc85fa73a81c53d3ce30578bc94d1633ec376add193a1e85e0f0ef8"
 
 RUN set -eux; \
     apk add --no-cache --virtual .fetch-deps gnupg; \
@@ -93,15 +93,16 @@ RUN set -eux; \
         argon2-dev \
         coreutils \
         curl-dev \
-        libedit-dev \
         libsodium-dev \
         libxml2-dev \
         linux-headers \
         oniguruma-dev \
         openssl-dev \
+        readline-dev \
         sqlite-dev \
     ; \
-    export CFLAGS="$PHP_CFLAGS" \
+    export \
+        CFLAGS="$PHP_CFLAGS" \
         CPPFLAGS="$PHP_CPPFLAGS" \
         LDFLAGS="$PHP_LDFLAGS" \
     ; \
@@ -123,17 +124,27 @@ RUN set -eux; \
         --with-pdo-sqlite=/usr \
         --with-sqlite3=/usr \
         --with-curl \
-        --with-libedit \
         --with-openssl \
+        --with-readline \
         --with-zlib \
         --with-pear \
         $(test "$gnuArch" = 's390x-linux-musl' && echo '--without-pcre-jit') \
-        ${PHP_EXTRA_CONFIGURE_ARGS:-} \
+        --disable-cgi \
+        --enable-fpm \
+        --with-fpm-user=www-data \
+        --with-fpm-group=www-data \
     ; \
     make -j "$(nproc)"; \
     find -type f -name '*.a' -delete; \
     make install; \
-    find /usr/local/bin /usr/local/sbin -type f -perm +0111 -exec strip --strip-all '{}' + || true; \
+    find \
+        /usr/local \
+        -type f \
+        -perm '/0111' \
+        -exec sh -euxc ' \
+            strip --strip-all "$@" || : \
+        ' -- '{}' + \
+    ; \
     make clean; \
     cp -v php.ini-* "$PHP_INI_DIR/"; \
     cd /; \
