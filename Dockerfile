@@ -9,8 +9,8 @@ ENV LANG=zh_CN.UTF-8 TIME_ZONE=Asia/Shanghai
 
 # apk mirrors
 RUN set -eux; \
-    echo "https://mirrors.aliyun.com/alpine/v3.12/main" > /etc/apk/repositories;  \
-    echo "https://mirrors.aliyun.com/alpine/v3.12/community" >> /etc/apk/repositories; \
+    echo "https://mirrors.aliyun.com/alpine/v3.14/main" > /etc/apk/repositories;  \
+    echo "https://mirrors.aliyun.com/alpine/v3.14/community" >> /etc/apk/repositories; \
     apk add --no-cache tzdata; \
     apk add --no-cache bash; \
     \
@@ -20,7 +20,7 @@ RUN set -eux; \
     echo $TIME_ZONE > /etc/timezone
 
 # --------------------------------------
-# 编译php7.3.29
+# 编译php7.4.26
 ENV PHPIZE_DEPS \
         autoconf \
         dpkg-dev dpkg \
@@ -59,11 +59,11 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV GPG_KEYS CBAF69F173A0FEA4B537F470D66C9593118BCCB6 F38252826ACD957EF380D39F2F7956BC5DA04B5D
+ENV GPG_KEYS 42670A7FE4D0441C8E4632349E4FDC074A4EF02D 5A52880781F755608BF815FC910DEB46F53EA312
 
-ENV PHP_VERSION 7.3.29
-ENV PHP_URL="https://www.php.net/distributions/php-7.3.29.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.3.29.tar.xz.asc"
-ENV PHP_SHA256="7db2834511f3d86272dca3daee3f395a5a4afce359b8342aa6edad80e12eb4d0"
+ENV PHP_VERSION 7.4.26
+ENV PHP_URL="https://www.php.net/distributions/php-7.4.26.tar.xz" PHP_ASC_URL="https://www.php.net/distributions/php-7.4.26.tar.xz.asc"
+ENV PHP_SHA256="e305b3aafdc85fa73a81c53d3ce30578bc94d1633ec376add193a1e85e0f0ef8"
 
 RUN set -eux; \
     apk add --no-cache --virtual .fetch-deps gnupg; \
@@ -93,13 +93,16 @@ RUN set -eux; \
         argon2-dev \
         coreutils \
         curl-dev \
-        libedit-dev \
         libsodium-dev \
         libxml2-dev \
+        linux-headers \
+        oniguruma-dev \
         openssl-dev \
+        readline-dev \
         sqlite-dev \
     ; \
-    export CFLAGS="$PHP_CFLAGS" \
+    export \
+        CFLAGS="$PHP_CFLAGS" \
         CPPFLAGS="$PHP_CPPFLAGS" \
         LDFLAGS="$PHP_LDFLAGS" \
     ; \
@@ -121,16 +124,27 @@ RUN set -eux; \
         --with-pdo-sqlite=/usr \
         --with-sqlite3=/usr \
         --with-curl \
-        --with-libedit \
         --with-openssl \
+        --with-readline \
         --with-zlib \
+        --with-pear \
         $(test "$gnuArch" = 's390x-linux-musl' && echo '--without-pcre-jit') \
-        ${PHP_EXTRA_CONFIGURE_ARGS:-} \
+        --disable-cgi \
+        --enable-fpm \
+        --with-fpm-user=www-data \
+        --with-fpm-group=www-data \
     ; \
     make -j "$(nproc)"; \
     find -type f -name '*.a' -delete; \
     make install; \
-    find /usr/local/bin /usr/local/sbin -type f -perm +0111 -exec strip --strip-all '{}' + || true; \
+    find \
+        /usr/local \
+        -type f \
+        -perm '/0111' \
+        -exec sh -euxc ' \
+            strip --strip-all "$@" || : \
+        ' -- '{}' + \
+    ; \
     make clean; \
     cp -v php.ini-* "$PHP_INI_DIR/"; \
     cd /; \
