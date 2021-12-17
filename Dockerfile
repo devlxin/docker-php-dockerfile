@@ -48,8 +48,8 @@ RUN set -eux; \
     [ ! -d /data/htdocs ]; \
     mkdir -p /data/htdocs; \
     mkdir -p /data/storage; \
-    chown web:web /data/htdocs; \
-    chown web:web /data/storage; \
+    chown -fR web:web /data/htdocs; \
+    chown -fR web:web /data/storage; \
     chmod 777 /data/htdocs; \
     chmod 777 /data/storage
 
