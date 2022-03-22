@@ -228,6 +228,9 @@ RUN set -eux; \
     #pdo_mysql
     install-php-extensions pdo_mysql; \
     \
+    #zip
+    install-php-extensions zip; \
+    \
     rm -rf /usr/src/php.tar.*
 
 
